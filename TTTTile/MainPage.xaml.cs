@@ -15,25 +15,19 @@ namespace TTTTile
         {
             InitializeComponent();
 
-            _buttonSetBackground.Click += (s, e) => SetBackgroundImageAsync();
-            _buttonSetTileImage.Click += (s, e) => SetTileImageAsync();
-            _buttonAddSmallTile.Click += (s, e) => _imageTileView.AddTile(TileSize.Small);
-            _buttonAddMediumTile.Click += (s, e) => _imageTileView.AddTile(TileSize.Medium);
-            _buttonAddWideTile.Click += (s, e) => _imageTileView.AddTile(TileSize.Wide);
-            _buttonPin.Click += (s, e) => _imageTileView.RequirePinAsync();
+            _sliderDpiScaling.Value = Windows.Graphics.Display.DisplayInformation.GetForCurrentView().RawPixelsPerViewPixel * 100;
 
-            _buttonHelp.Click += (s, e) =>
-            {
-                _ = new ContentDialog()
-                {
-                    Title = "Help",
-                    Content = @"
-Left-click to move tile
-Right-click to move image
-Scroll wheel to zoom image",
-                    CloseButtonText = "Ok"
-                }.ShowAsync();
-            };
+            _buttonSetBackground.Click += (s, e) => SetBackgroundImageAsync();
+            _buttonSetTileImage.Click  += (s, e) => SetTileImageAsync();
+
+            _buttonAddSmallTile.Click  += (s, e) => _imageTileView.AddTile(TileSize.Small);
+            _buttonAddMediumTile.Click += (s, e) => _imageTileView.AddTile(TileSize.Medium);
+            _buttonAddWideTile.Click   += (s, e) => _imageTileView.AddTile(TileSize.Wide);
+
+            _buttonPin.Click += (s, e) => _imageTileView.RequirePinAsync((double)_sliderDpiScaling.Value / 100);
+
+            _buttonHelp.Click += (s, e)    => _ = _dialogHelp.ShowAsync();
+            _buttonSetting.Click += (s, e) => _ = _dialogSetting.ShowAsync();
         }
 
         private async void SetTileImageAsync()

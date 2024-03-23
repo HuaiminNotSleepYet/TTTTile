@@ -92,8 +92,10 @@ namespace TTTTile.Controls
                 tile.ImageSource = _softwareBitmapSource;
         }
 
-        public async void RequirePinAsync()
+        public async void RequirePinAsync(double dpiScaling)
         {
+            double scaling = dpiScaling;
+
             StorageFolder folder = (await ApplicationData.Current.LocalFolder.TryGetItemAsync("Tiles")) as StorageFolder;
             if (folder == null)
                 folder = await ApplicationData.Current.LocalFolder.CreateFolderAsync("Tiles", CreationCollisionOption.ReplaceExisting);
@@ -111,15 +113,16 @@ namespace TTTTile.Controls
                     BitmapEncoder encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, stream);
 
                     encoder.SetSoftwareBitmap(_softwareBitmap);
+                    encoder.BitmapTransform.InterpolationMode = BitmapInterpolationMode.Fant;
                     encoder.BitmapTransform.Bounds = new BitmapBounds()
                     {
-                        X = (uint)-tile.ImageTranslateTransform.X,
-                        Y = (uint)-tile.ImageTranslateTransform.Y,
-                        Width = (uint)tile.Size.PixelWidth,
-                        Height = (uint)tile.Size.PixelHeight,
+                        X = (uint)(-tile.ImageTranslateTransform.X * scaling),
+                        Y = (uint)(-tile.ImageTranslateTransform.Y * scaling),
+                        Width = (uint)(tile.Size.PixelWidth * scaling),
+                        Height = (uint)(tile.Size.PixelHeight * scaling),
                     };
-                    encoder.BitmapTransform.ScaledWidth = (uint)(_softwareBitmap.PixelWidth * ImageScale);
-                    encoder.BitmapTransform.ScaledHeight = (uint)(_softwareBitmap.PixelHeight * ImageScale);
+                    encoder.BitmapTransform.ScaledWidth = (uint)(_softwareBitmap.PixelWidth * ImageScale * scaling);
+                    encoder.BitmapTransform.ScaledHeight = (uint)(_softwareBitmap.PixelHeight * ImageScale * scaling);
 
                     await encoder.FlushAsync().AsTask().ContinueWith(async _ =>
                     {
@@ -144,7 +147,7 @@ namespace TTTTile.Controls
 
                             SecondaryTile t = new SecondaryTile(
                                 tileId: tileId,
-                                displayName: string.Empty,
+                                displayName: "wdaf",
                                 arguments: "wdnmd",
                                 square150x150Logo: new Uri($"ms-appdata:///local/Tiles/{tileFilename}"),
                                 desiredSize: ts);
