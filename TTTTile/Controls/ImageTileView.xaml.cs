@@ -68,6 +68,8 @@ namespace TTTTile.Controls
 
         private readonly Dictionary<ImageTile, (int x, int y)> _tiles = new Dictionary<ImageTile, (int x, int y)>();
 
+        public Guid Id { get; set; } = Guid.NewGuid();
+
         public IEnumerable<(TileSize size, int x, int y)> Tiles => _tiles.Select(kv => (kv.Key.Size, kv.Value.x, kv.Value.y));
 
         public ImageTileView()
@@ -92,14 +94,17 @@ namespace TTTTile.Controls
 
         public async void RequirePinAsync()
         {
-            StorageFolder localFolder = await ApplicationData.Current.LocalFolder.CreateFolderAsync("Tiles", CreationCollisionOption.ReplaceExisting);
+            StorageFolder folder = (await ApplicationData.Current.LocalFolder.TryGetItemAsync("Tiles")) as StorageFolder;
+            if (folder == null)
+                folder = await ApplicationData.Current.LocalFolder.CreateFolderAsync("Tiles", CreationCollisionOption.ReplaceExisting);
 
             int i = 0;
             foreach (ImageTile tile in _tiles.Keys)
             {
-                string tileFilename = $"114514_{i}.png";
+                string tileId = $"{Id}_{i:d2}";
+                string tileFilename = $"{tileId}.png";
 
-                StorageFile tileFile = await localFolder.CreateFileAsync(tileFilename, CreationCollisionOption.ReplaceExisting);
+                StorageFile tileFile = await folder.CreateFileAsync(tileFilename, CreationCollisionOption.ReplaceExisting);
 
                 using (IRandomAccessStream stream = await tileFile.OpenAsync(FileAccessMode.ReadWrite))
                 {
@@ -137,20 +142,15 @@ namespace TTTTile.Controls
                                     break;
                             };
 
-                            string tileId = tileFilename;
-
                             SecondaryTile t = new SecondaryTile(
                                 tileId: tileId,
                                 displayName: string.Empty,
                                 arguments: "wdnmd",
-                                square150x150Logo: new Uri($"ms-appdata:///local/tiles/{tileFilename}"),
+                                square150x150Logo: new Uri($"ms-appdata:///local/Tiles/{tileFilename}"),
                                 desiredSize: ts);
                             t.VisualElements.Wide310x150Logo = t.VisualElements.Square150x150Logo;
 
-                            if (SecondaryTile.Exists(tileId))
-                                await t.UpdateAsync();
-                            else
-                                await t.RequestCreateAsync();
+                            await t.RequestCreateAsync();
                         });
                     });
                 }

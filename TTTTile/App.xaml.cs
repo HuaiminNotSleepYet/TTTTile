@@ -1,7 +1,8 @@
 ﻿using System;
-using TTTTile.Models;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
+using Windows.Storage;
+using Windows.UI.StartScreen;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
@@ -18,6 +19,8 @@ namespace TTTTile
 
         protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
+            CleanUnusedImageAsync();
+
             if (!(Window.Current.Content is Frame rootFrame))
             {
                 rootFrame = new Frame();
@@ -51,6 +54,19 @@ namespace TTTTile
         {
             var deferral = e.SuspendingOperation.GetDeferral();
             deferral.Complete();
+        }
+
+        private static async void CleanUnusedImageAsync()
+        {
+            StorageFolder folder = await ApplicationData.Current.LocalFolder.TryGetItemAsync("Tiles") as StorageFolder;
+            if (folder == null)
+                return;
+
+            foreach (StorageFile file in await folder.GetFilesAsync())
+            {
+                if (!SecondaryTile.Exists(file.DisplayName))
+                    await file.DeleteAsync();
+            }
         }
     }
 }
