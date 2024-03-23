@@ -87,7 +87,7 @@
 
         <ContentDialog x:Name="_dialogHelp"
                        Title="Help"
-                       Content="Left click to move the tile.&#x0a;Middle click to remove the tile.&#x0a;Right click to move the image.&#x0a;Scroll wheel to zoom the picture.&#x0a;"
+                       Content="Left click to move the tile.&#x0a;Right click to move the image.&#x0a;Middle click to remove the tile.&#x0a;Scroll wheel to zoom the picture.&#x0a;"
                        CloseButtonText="OK"/>
 
         <ContentDialog x:Name="_dialogSetting"
