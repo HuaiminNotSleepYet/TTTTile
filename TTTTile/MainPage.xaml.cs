@@ -11,6 +11,8 @@ namespace TTTTile
 {
     public sealed partial class MainPage : Page
     {
+        private string _currentTileImageFilename = string.Empty;
+
         public MainPage()
         {
             InitializeComponent();
@@ -24,7 +26,7 @@ namespace TTTTile
             _buttonAddMediumTile.Click += (s, e) => _imageTileView.AddTile(TileSize.Medium);
             _buttonAddWideTile.Click   += (s, e) => _imageTileView.AddTile(TileSize.Wide);
 
-            _buttonPin.Click += (s, e) => _imageTileView.RequirePinAsync((double)_sliderDpiScaling.Value / 100);
+            _buttonPin.Click += (s, e) => _imageTileView.RequirePinAsync((double)_sliderDpiScaling.Value / 100, _currentTileImageFilename);
 
             _buttonHelp.Click += (s, e)    => _ = _dialogHelp.ShowAsync();
             _buttonSetting.Click += (s, e) => _ = _dialogSetting.ShowAsync();
@@ -35,6 +37,7 @@ namespace TTTTile
             StorageFile file = await SelectImageAsync();
             if (file == null)
                 return;
+            _currentTileImageFilename = file.Name;
             BitmapDecoder bitmapDecoder = await BitmapDecoder.CreateAsync(await file.OpenAsync(FileAccessMode.Read));
             SoftwareBitmap softwareBitmap = await bitmapDecoder.GetSoftwareBitmapAsync();
             _imageTileView.Id = Guid.NewGuid();

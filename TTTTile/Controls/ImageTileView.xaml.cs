@@ -89,7 +89,7 @@ namespace TTTTile.Controls
                 tile.ImageSource = _softwareBitmapSource;
         }
 
-        public async void RequirePinAsync(double dpiScaling)
+        public async void RequirePinAsync(double dpiScaling, string displayName)
         {
             double scaling = dpiScaling;
 
@@ -129,7 +129,7 @@ namespace TTTTile.Controls
                         {
                             var t = new Windows.UI.StartScreen.SecondaryTile(
                                 tileId: tileId,
-                                displayName: "wdaf",
+                                displayName: displayName,
                                 arguments: "wdnmd",
                                 square150x150Logo: new Uri($"ms-appdata:///local/Tiles/{tileFilename}"),
                                 desiredSize: (tile.Size == TileSize.Small ? TileSize.Medium : tile.Size).AsWindowsTileSize());
