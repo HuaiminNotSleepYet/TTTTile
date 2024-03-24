@@ -20,9 +20,9 @@ namespace TTTTile
             _buttonSetBackground.Click += (s, e) => SetBackgroundImageAsync();
             _buttonSetTileImage.Click  += (s, e) => SetTileImageAsync();
 
-            _buttonAddSmallTile.Click  += (s, e) => _imageTileView.AddTile(TileSize.Small);
-            _buttonAddMediumTile.Click += (s, e) => _imageTileView.AddTile(TileSize.Medium);
-            _buttonAddWideTile.Click   += (s, e) => _imageTileView.AddTile(TileSize.Wide);
+            _buttonAddSmallTile.Click  += (s, e) => _imageTileView.AddTile(TileSizeInfo.SmallTileSize);
+            _buttonAddMediumTile.Click += (s, e) => _imageTileView.AddTile(TileSizeInfo.MediumTileSize);
+            _buttonAddWideTile.Click   += (s, e) => _imageTileView.AddTile(TileSizeInfo.WideTileSize);
 
             _buttonPin.Click += (s, e) => _imageTileView.RequirePinAsync((double)_sliderDpiScaling.Value / 100);
 

@@ -1,4 +1,5 @@
 ﻿using TTTTile.Models.Tiles;
+using Windows.UI.StartScreen;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
 
@@ -21,8 +22,11 @@ namespace TTTTile.Controls
         public ImageTile(TileSize size)
         {
             Size = size;
-            Width = size.PixelWidth;
-            Height = size.PixelHeight;
+
+            TileSizeInfo sizeInfo = TileSizeInfo.GetInfo(size);
+            Width = sizeInfo.PixelWidth;
+            Height = sizeInfo.PixelHeight;
+
             InitializeComponent();
         }
     }

@@ -129,7 +129,7 @@
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Models\Observable\ObservableObject.cs" />
-    <Compile Include="Models\Tiles\TileSize.cs" />
+    <Compile Include="Models\Tiles\TileSizeInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

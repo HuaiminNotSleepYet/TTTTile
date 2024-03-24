@@ -1,25 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using TTTTile.Models;
 using TTTTile.Models.Tiles;
 using Windows.Graphics.Imaging;
 using Windows.Storage;
 using Windows.Storage.Streams;
 using Windows.UI.Input;
+using Windows.UI.StartScreen;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media.Imaging;
-using SecondaryTile = Windows.UI.StartScreen.SecondaryTile;
-using WinTileSize = Windows.UI.StartScreen.TileSize;
 
 namespace TTTTile.Controls
 {
     public sealed partial class ImageTileView : UserControl
     {
-        private readonly static int _tileGridSize = TileSize.TileUnitSize + TileSize.TileMargin;
-        private readonly static int _panelWidth = 8;
+        private readonly static int _tileGridCellSize = (TileSizeInfo.SmallTilePixelSize + TileSizeInfo.TileMargin);
+        private readonly static int _tileGridColumnCount = 8;
 
         public static readonly DependencyProperty ImageScaleProperty =
             DependencyProperty.Register("ImageScale", typeof(double), typeof(ImageTileView), new PropertyMetadata(1.0));
@@ -74,7 +72,7 @@ namespace TTTTile.Controls
 
         public ImageTileView()
         {
-            double width = _panelWidth * _tileGridSize + TileSize.TileMargin;
+            double width = _tileGridColumnCount * (_tileGridCellSize) + TileSizeInfo.TileMargin;
             MinWidth = width;
             Width = width;
             MaxWidth = width;
@@ -103,6 +101,8 @@ namespace TTTTile.Controls
             int i = 0;
             foreach (ImageTile tile in _tiles.Keys)
             {
+                TileSizeInfo sizeInfo = TileSizeInfo.GetInfo(tile.Size);
+
                 string tileId = $"{Id}_{i:d2}";
                 string tileFilename = $"{tileId}.png";
 
@@ -118,8 +118,8 @@ namespace TTTTile.Controls
                     {
                         X = (uint)(-tile.ImageTranslateTransform.X * scaling),
                         Y = (uint)(-tile.ImageTranslateTransform.Y * scaling),
-                        Width = (uint)(tile.Size.PixelWidth * scaling),
-                        Height = (uint)(tile.Size.PixelHeight * scaling),
+                        Width = (uint)(sizeInfo.PixelWidth * scaling),
+                        Height = (uint)(sizeInfo.PixelHeight * scaling),
                     };
                     encoder.BitmapTransform.ScaledWidth = (uint)(_softwareBitmap.PixelWidth * ImageScale * scaling);
                     encoder.BitmapTransform.ScaledHeight = (uint)(_softwareBitmap.PixelHeight * ImageScale * scaling);
@@ -128,29 +128,12 @@ namespace TTTTile.Controls
                     {
                         await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
                         {
-                            WinTileSize ts = tile.Size.WindowsTileSize;
-                            switch (ts)
-                            {
-                                case WinTileSize.Default:
-                                case WinTileSize.Square150x150:
-                                case WinTileSize.Wide310x150:
-                                    break;
-
-                                case WinTileSize.Square71x71:
-                                    ts = WinTileSize.Square150x150;
-                                    break;
-
-                                default:
-                                    ts = WinTileSize.Default;
-                                    break;
-                            };
-
                             SecondaryTile t = new SecondaryTile(
                                 tileId: tileId,
                                 displayName: "wdaf",
                                 arguments: "wdnmd",
                                 square150x150Logo: new Uri($"ms-appdata:///local/Tiles/{tileFilename}"),
-                                desiredSize: ts);
+                                desiredSize: tile.Size == TileSizeInfo.SmallTileSize ? TileSizeInfo.MediumTileSize : tile.Size);
                             t.VisualElements.Wide310x150Logo = t.VisualElements.Square150x150Logo;
 
                             await t.RequestCreateAsync();
@@ -170,8 +153,8 @@ namespace TTTTile.Controls
         {
             _tiles[tile] = (x, y);
 
-            double newLeft = x * _tileGridSize + TileSize.TileMargin;
-            double newTop = y * _tileGridSize + TileSize.TileMargin;
+            double newLeft = x * _tileGridCellSize + TileSizeInfo.TileMargin;
+            double newTop = y * _tileGridCellSize + TileSizeInfo.TileMargin;
 
             Canvas.SetLeft(tile, newLeft);
             Canvas.SetTop(tile, newTop);
@@ -179,7 +162,11 @@ namespace TTTTile.Controls
             tile.ImageTranslateTransform.X = -newLeft + ImageX;
             tile.ImageTranslateTransform.Y = -newTop + ImageY;
 
-            Height = _tiles.Max(kv => (kv.Key.Size.Height + kv.Value.y) * _tileGridSize + 4);
+            Height = _tiles.Max((kv) =>
+            {
+                TileSizeInfo sizeInfo = TileSizeInfo.GetInfo(kv.Key.Size);
+                return (kv.Value.y * sizeInfo.Height) * _tileGridCellSize + TileSizeInfo.TileMargin;
+            });
         }
 
         private ImageTile TileAt(int x, int y)
@@ -188,8 +175,9 @@ namespace TTTTile.Controls
             {
                 ImageTile tile = kv.Key;
                 (int x, int y) pos = kv.Value;
-                if (x >= pos.x && x < pos.x + tile.Size.Width
-                 && y >= pos.y && y < pos.y + tile.Size.Height)
+                TileSizeInfo sizeInfo = TileSizeInfo.GetInfo(tile.Size);
+                if (x >= pos.x && x < pos.x + sizeInfo.Width
+                 && y >= pos.y && y < pos.y + sizeInfo.Height)
                     return tile;
             }
             return null;
@@ -197,7 +185,7 @@ namespace TTTTile.Controls
 
         public void AddTile(TileSize size)
         {
-            AddTile(size, 0, _tiles.Count == 0 ? 0 : _tiles.Max(x => x.Value.y + x.Key.Size.Height));
+            AddTile(size, 0, _tiles.Count == 0 ? 0 : _tiles.Max(x => x.Value.y + TileSizeInfo.GetInfo(x.Key.Size).Height));
         }
 
         public void AddTile(TileSize size, int x, int y)
@@ -231,14 +219,15 @@ namespace TTTTile.Controls
 
         private void MoveTileTo(ImageTile tile, int x, int y, ImageTile ignore)
         {
-            for (int i = x; i - x < tile.Size.Width; i++)
+            TileSizeInfo sizeInfo = TileSizeInfo.GetInfo(tile.Size);
+            for (int i = x; i - x < sizeInfo.Width; i++)
             {
-                for (int j = y; j - y < tile.Size.Height; j++)
+                for (int j = y; j - y < sizeInfo.Height; j++)
                 {
                     ImageTile t = TileAt(i, j);
                     if (t == null || t == tile || t == ignore)
                         continue;
-                    MoveTileTo(t, GetTilePosition(t).x, y + tile.Size.Height, ignore);
+                    MoveTileTo(t, GetTilePosition(t).x, y + sizeInfo.Height, ignore);
                 }
             }
             SetTilePosition(tile, x, y);
@@ -312,10 +301,11 @@ namespace TTTTile.Controls
         {
             if (_moveTile && sender is ImageTile tile)
             {
-                int x = Math.Clamp((int)((Canvas.GetLeft(tile) + (_tileGridSize / 2)) / _tileGridSize), 0, _panelWidth - 1);
-                if (x + tile.Size.Width > _panelWidth)
-                    x -= x + tile.Size.Width - _panelWidth;
-                int y = Math.Clamp((int)((Canvas.GetTop(tile) + (_tileGridSize / 2)) / _tileGridSize), 0, int.MaxValue);
+                int x = Math.Clamp((int)((Canvas.GetLeft(tile) + (_tileGridCellSize / 2)) / _tileGridCellSize), 0, _tileGridColumnCount - 1);
+                TileSizeInfo sizeInfo = TileSizeInfo.GetInfo(tile.Size);
+                if (x + sizeInfo.Width > _tileGridColumnCount)
+                    x -= x + sizeInfo.Width - _tileGridColumnCount;
+                int y = Math.Clamp((int)((Canvas.GetTop(tile) + (_tileGridCellSize / 2)) / _tileGridCellSize), 0, int.MaxValue);
                 MoveTileTo(tile, x, y, tile);
                 _moveTile = false;
             }
