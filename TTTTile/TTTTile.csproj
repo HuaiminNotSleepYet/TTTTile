@@ -125,6 +125,7 @@
     <Compile Include="Controls\ImageTileView.xaml.cs">
       <DependentUpon>ImageTileView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\TilePanel.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>

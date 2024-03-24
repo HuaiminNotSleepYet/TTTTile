@@ -14,6 +14,7 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition/>
+            <ColumnDefinition/>
         </Grid.ColumnDefinitions>
 
         <Image x:Name="_backgroundImage" Stretch="UniformToFill"
@@ -85,6 +86,12 @@
                                    VerticalAlignment="Top"/>
         </ScrollViewer>
 
+        <c:TilePanel Grid.Column="2" HorizontalAlignment="Left" VerticalAlignment="Top" Background="DarkSlateGray">
+            <Rectangle Fill="Red"
+                       c:TilePanel.X="0" c:TilePanel.Y="0" c:TilePanel.Size="Large"
+                       HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+        </c:TilePanel>
+        
         <ContentDialog x:Name="_dialogHelp"
                        Title="Help"
                        Content="Left click to move the tile.&#x0a;Right click to move the image.&#x0a;Middle click to remove the tile.&#x0a;Scroll wheel to zoom the picture.&#x0a;"
