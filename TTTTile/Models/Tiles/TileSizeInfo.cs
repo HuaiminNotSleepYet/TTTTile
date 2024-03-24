@@ -1,5 +1,4 @@
 ﻿using System;
-using Windows.UI.StartScreen;
 
 namespace TTTTile.Models.Tiles
 {
@@ -7,11 +6,6 @@ namespace TTTTile.Models.Tiles
     {
         public static int SmallTilePixelSize { get; } = 48;
         public static int TileMargin { get; } = 4;
-
-        public static TileSize SmallTileSize  { get; } = TileSize.Square71x71;
-        public static TileSize MediumTileSize { get; } = TileSize.Square150x150;
-        public static TileSize WideTileSize   { get; } = TileSize.Wide310x150;
-        public static TileSize LargeTileSize  { get; } = TileSize.Square310x310;
 
         public int Width { get; }
         public int Height { get; }
@@ -37,10 +31,10 @@ namespace TTTTile.Models.Tiles
         {
             switch (size)
             {
-                case TileSize.Square71x71:   return _smallSizeInfo;
-                case TileSize.Square150x150: return _mediumSizeInfo;
-                case TileSize.Wide310x150:   return _wideSizeInfo;
-                case TileSize.Square310x310: return _largeSizeInfo;
+                case TileSize.Small:  return _smallSizeInfo;
+                case TileSize.Medium: return _mediumSizeInfo;
+                case TileSize.Wide:   return _wideSizeInfo;
+                case TileSize.Large:  return _largeSizeInfo;
                 default: throw new ArgumentException($"Unsupported tile size: {size}.");
             }
         }

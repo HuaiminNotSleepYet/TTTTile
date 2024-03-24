@@ -1,5 +1,4 @@
 ﻿using TTTTile.Models.Tiles;
-using Windows.UI.StartScreen;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
 

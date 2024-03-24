@@ -6,7 +6,6 @@ using Windows.Graphics.Imaging;
 using Windows.Storage;
 using Windows.Storage.Streams;
 using Windows.UI.Input;
-using Windows.UI.StartScreen;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
@@ -128,14 +127,14 @@ namespace TTTTile.Controls
                     {
                         await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
                         {
-                            SecondaryTile t = new SecondaryTile(
+                            var t = new Windows.UI.StartScreen.SecondaryTile(
                                 tileId: tileId,
                                 displayName: "wdaf",
                                 arguments: "wdnmd",
                                 square150x150Logo: new Uri($"ms-appdata:///local/Tiles/{tileFilename}"),
-                                desiredSize: tile.Size == TileSizeInfo.SmallTileSize ? TileSizeInfo.MediumTileSize : tile.Size);
+                                desiredSize: (tile.Size == TileSize.Small ? TileSize.Medium : tile.Size).AsWindowsTileSize());
+                            
                             t.VisualElements.Wide310x150Logo = t.VisualElements.Square150x150Logo;
-
                             await t.RequestCreateAsync();
                         });
                     });
