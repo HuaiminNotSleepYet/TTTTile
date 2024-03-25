@@ -129,6 +129,7 @@
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Tiles\ImageTileManager.cs" />
     <Compile Include="Tiles\TileSize.cs" />
     <Compile Include="Tiles\TileSizeExtension.cs" />
     <Compile Include="Tiles\TileSizeInfo.cs" />

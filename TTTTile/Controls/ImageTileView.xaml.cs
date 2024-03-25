@@ -89,58 +89,10 @@ namespace TTTTile.Controls
                 tile.ImageSource = _softwareBitmapSource;
         }
 
-        public async void RequirePinAsync(double dpiScaling, string displayName)
+        public void RequirePin(string displayName)
         {
-            double scaling = dpiScaling;
-
-            StorageFolder folder = (await ApplicationData.Current.LocalFolder.TryGetItemAsync("Tiles")) as StorageFolder;
-            if (folder == null)
-                folder = await ApplicationData.Current.LocalFolder.CreateFolderAsync("Tiles", CreationCollisionOption.ReplaceExisting);
-
-            int i = 0;
             foreach (ImageTile tile in _tiles.Keys)
-            {
-                TileSizeInfo sizeInfo = TileSizeInfo.GetInfo(tile.Size);
-
-                string tileId = $"{Id}_{i:d2}";
-                string tileFilename = $"{tileId}.png";
-
-                StorageFile tileFile = await folder.CreateFileAsync(tileFilename, CreationCollisionOption.ReplaceExisting);
-
-                using (IRandomAccessStream stream = await tileFile.OpenAsync(FileAccessMode.ReadWrite))
-                {
-                    BitmapEncoder encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, stream);
-
-                    encoder.SetSoftwareBitmap(_softwareBitmap);
-                    encoder.BitmapTransform.InterpolationMode = BitmapInterpolationMode.Fant;
-                    encoder.BitmapTransform.Bounds = new BitmapBounds()
-                    {
-                        X = (uint)(-tile.ImageTranslateTransform.X * scaling),
-                        Y = (uint)(-tile.ImageTranslateTransform.Y * scaling),
-                        Width = (uint)(sizeInfo.PixelWidth * scaling),
-                        Height = (uint)(sizeInfo.PixelHeight * scaling),
-                    };
-                    encoder.BitmapTransform.ScaledWidth = (uint)(_softwareBitmap.PixelWidth * ImageScale * scaling);
-                    encoder.BitmapTransform.ScaledHeight = (uint)(_softwareBitmap.PixelHeight * ImageScale * scaling);
-
-                    await encoder.FlushAsync().AsTask().ContinueWith(async _ =>
-                    {
-                        await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
-                        {
-                            var t = new Windows.UI.StartScreen.SecondaryTile(
-                                tileId: tileId,
-                                displayName: displayName,
-                                arguments: "wdnmd",
-                                square150x150Logo: new Uri($"ms-appdata:///local/Tiles/{tileFilename}"),
-                                desiredSize: (tile.Size == TileSize.Small ? TileSize.Medium : tile.Size).AsWindowsTileSize());
-                            
-                            t.VisualElements.Wide310x150Logo = t.VisualElements.Square150x150Logo;
-                            await t.RequestCreateAsync();
-                        });
-                    });
-                }
-                i++;
-            }
+                ImageTileManager.PinAsync(_softwareBitmap, -tile.ImageTranslateTransform.X, -tile.ImageTranslateTransform.Y, ImageScale, tile.Size, displayName);
         }
 
         public (int x, int y) GetTilePosition(ImageTile tile)

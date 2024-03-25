@@ -17,7 +17,8 @@ namespace TTTTile
         {
             InitializeComponent();
 
-            _sliderDpiScaling.Value = Windows.Graphics.Display.DisplayInformation.GetForCurrentView().RawPixelsPerViewPixel * 100;
+            _sliderDpiScaling.Value = ImageTileManager.DpiScaling * 100;
+            _sliderDpiScaling.ValueChanged += (s, e) => ImageTileManager.DpiScaling = e.NewValue / 100;
 
             _buttonSetBackground.Click += (s, e) => SetBackgroundImageAsync();
             _buttonSetTileImage.Click  += (s, e) => SetTileImageAsync();
@@ -26,7 +27,7 @@ namespace TTTTile
             _buttonAddMediumTile.Click += (s, e) => _imageTileView.AddTile(TileSize.Medium);
             _buttonAddWideTile.Click   += (s, e) => _imageTileView.AddTile(TileSize.Wide);
 
-            _buttonPin.Click += (s, e) => _imageTileView.RequirePinAsync((double)_sliderDpiScaling.Value / 100, _currentTileImageFilename);
+            _buttonPin.Click += (s, e) => _imageTileView.RequirePin(_currentTileImageFilename);
 
             _buttonHelp.Click += (s, e)    => _ = _dialogHelp.ShowAsync();
             _buttonSetting.Click += (s, e) => _ = _dialogSetting.ShowAsync();
