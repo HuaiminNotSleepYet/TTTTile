@@ -1,4 +1,4 @@
-﻿using TTTTile.Models.Tiles;
+﻿using TTTTile.Tiles;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
 

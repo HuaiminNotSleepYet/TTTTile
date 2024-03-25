@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using TTTTile.Models.Tiles;
+using TTTTile.Tiles;
 using Windows.Graphics.Imaging;
 using Windows.Storage;
 using Windows.Storage.Pickers;

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TTTTile.Models.Tiles
+namespace TTTTile.Tiles
 {
     public static class TileSizeExtension
     {

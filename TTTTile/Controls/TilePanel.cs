@@ -1,5 +1,5 @@
 ﻿using System;
-using TTTTile.Models.Tiles;
+using TTTTile.Tiles;
 using Windows.Foundation;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;

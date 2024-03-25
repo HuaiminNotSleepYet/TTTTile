@@ -1,4 +1,4 @@
-﻿namespace TTTTile.Models.Tiles
+﻿namespace TTTTile.Tiles
 {
     public enum TileSize
     {
