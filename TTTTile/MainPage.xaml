@@ -14,7 +14,7 @@
         <Image x:Name="_backgroundImage" Stretch="UniformToFill"
                HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-        <ScrollViewer Margin="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <ScrollViewer Margin="212,4,4,4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <c:ImageTileView x:Name="_imageTileView" VerticalAlignment="Top"/>
         </ScrollViewer>
         
