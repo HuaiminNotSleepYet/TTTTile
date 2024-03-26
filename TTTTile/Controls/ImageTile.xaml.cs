@@ -6,8 +6,6 @@ namespace TTTTile.Controls
 {
     public sealed partial class ImageTile : UserControl
     {
-        public TileSize Size { get; }
-
         public ImageSource ImageSource
         {
             get => _imageBrush.ImageSource;
@@ -18,14 +16,8 @@ namespace TTTTile.Controls
 
         public TranslateTransform ImageTranslateTransform => _imageBrushTranslateTransform;
 
-        public ImageTile(TileSize size)
+        public ImageTile()
         {
-            Size = size;
-
-            TileSizeInfo sizeInfo = TileSizeInfo.GetInfo(size);
-            Width = sizeInfo.PixelWidth;
-            Height = sizeInfo.PixelHeight;
-
             InitializeComponent();
         }
     }

@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using TTTTile.Tiles;
+using Windows.Foundation;
 using Windows.Graphics.Imaging;
-using Windows.Storage;
-using Windows.Storage.Streams;
 using Windows.UI.Input;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -31,13 +30,15 @@ namespace TTTTile.Controls
         {
             get { return (double)GetValue(ImageScaleProperty); }
             set
-            { 
-                SetValue(ImageScaleProperty, value); 
-                foreach(ImageTile tile in _tiles.Keys)
+            {
+                _draggingPreview.ImageScaleTransform.ScaleX = value;
+                _draggingPreview.ImageScaleTransform.ScaleY = value;
+                foreach (ImageTile tile in _tiles)
                 {
                     tile.ImageScaleTransform.ScaleX = value;
                     tile.ImageScaleTransform.ScaleY = value;
                 }
+                SetValue(ImageScaleProperty, value);
             }
         }
 
@@ -46,9 +47,9 @@ namespace TTTTile.Controls
             get { return (double)GetValue(ImageXProperty); }
             set
             {
+                foreach (ImageTile tile in _tiles)
+                    tile.ImageTranslateTransform.X = -TilePanel.GetX(tile) * _tileGridCellSize + value;
                 SetValue(ImageXProperty, value);
-                foreach (ImageTile tile in _tiles.Keys)
-                    tile.ImageTranslateTransform.X = -Canvas.GetLeft(tile) + value;
             }
         }
 
@@ -57,92 +58,70 @@ namespace TTTTile.Controls
             get { return (double)GetValue(ImageYProperty); }
             set
             {
+                foreach (ImageTile tile in _tiles)
+                    tile.ImageTranslateTransform.Y = -TilePanel.GetY(tile) * _tileGridCellSize + value;
                 SetValue(ImageYProperty, value);
-                foreach (ImageTile tile in _tiles.Keys)
-                    tile.ImageTranslateTransform.Y = -Canvas.GetTop(tile) + value;
             }
         }
 
-        private readonly Dictionary<ImageTile, (int x, int y)> _tiles = new Dictionary<ImageTile, (int x, int y)>();
+        private SoftwareBitmap _image;
+        private SoftwareBitmapSource _imageSource = new SoftwareBitmapSource();
 
-        public Guid Id { get; set; } = Guid.NewGuid();
+        public SoftwareBitmap Image
+        {
+            get { return _image; }
+            set
+            {
+                if (value == null)
+                    _ = _imageSource.SetBitmapAsync(null);
+                else
+                    _ = _imageSource.SetBitmapAsync(SoftwareBitmap.Convert(value, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied));
 
-        public IEnumerable<(TileSize size, int x, int y)> Tiles => _tiles.Select(kv => (kv.Key.Size, kv.Value.x, kv.Value.y));
+                foreach (ImageTile tile in _tiles)
+                    tile.ImageSource = _imageSource;
+
+                _image = value;
+            }
+        }
+
+        private readonly List<ImageTile> _tiles = new List<ImageTile>();
 
         public ImageTileView()
         {
-            double width = _tileGridColumnCount * (_tileGridCellSize) + TileSizeInfo.TileMargin;
+            double width = _tileGridColumnCount * _tileGridCellSize + TileSizeInfo.TileMargin;
             MinWidth = width;
             Width = width;
             MaxWidth = width;
+
             InitializeComponent();
-        }
 
-        private SoftwareBitmap _softwareBitmap = null;
-        private readonly SoftwareBitmapSource _softwareBitmapSource = new SoftwareBitmapSource();
-
-        public void SetImage(SoftwareBitmap softwareBitmap)
-        {
-            _softwareBitmap = softwareBitmap;
-            _ = _softwareBitmapSource.SetBitmapAsync(SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied));
-            foreach (ImageTile tile in _tiles.Keys)
-                tile.ImageSource = _softwareBitmapSource;
+            _draggingPreview.ImageSource = _imageSource;
         }
 
         public void RequirePin(string displayName)
         {
-            foreach (ImageTile tile in _tiles.Keys)
-                ImageTileManager.PinAsync(_softwareBitmap, -tile.ImageTranslateTransform.X, -tile.ImageTranslateTransform.Y, ImageScale, tile.Size, displayName);
-        }
-
-        public (int x, int y) GetTilePosition(ImageTile tile)
-        {
-            return _tiles.TryGetValue(tile, out (int x, int y) pos) ? pos : (-1, -1); 
-        }
-
-        private void SetTilePosition(ImageTile tile, int x, int y)
-        {
-            _tiles[tile] = (x, y);
-
-            double newLeft = x * _tileGridCellSize + TileSizeInfo.TileMargin;
-            double newTop = y * _tileGridCellSize + TileSizeInfo.TileMargin;
-
-            Canvas.SetLeft(tile, newLeft);
-            Canvas.SetTop(tile, newTop);
-
-            tile.ImageTranslateTransform.X = -newLeft + ImageX;
-            tile.ImageTranslateTransform.Y = -newTop + ImageY;
-
-            Height = _tiles.Max((kv) =>
+            foreach (ImageTile tile in _tiles)
             {
-                TileSizeInfo sizeInfo = TileSizeInfo.GetInfo(kv.Key.Size);
-                return (kv.Value.y * sizeInfo.Height) * _tileGridCellSize + TileSizeInfo.TileMargin;
-            });
-        }
-
-        private ImageTile TileAt(int x, int y)
-        {
-            foreach (var kv in _tiles)
-            {
-                ImageTile tile = kv.Key;
-                (int x, int y) pos = kv.Value;
-                TileSizeInfo sizeInfo = TileSizeInfo.GetInfo(tile.Size);
-                if (x >= pos.x && x < pos.x + sizeInfo.Width
-                 && y >= pos.y && y < pos.y + sizeInfo.Height)
-                    return tile;
+                ImageTileManager.PinAsync(Image,
+                    -tile.ImageTranslateTransform.X,
+                    -tile.ImageTranslateTransform.Y,
+                    ImageScale,
+                    TilePanel.GetSize(tile),
+                    displayName);
             }
-            return null;
         }
 
         public void AddTile(TileSize size)
         {
-            AddTile(size, 0, _tiles.Count == 0 ? 0 : _tiles.Max(x => x.Value.y + TileSizeInfo.GetInfo(x.Key.Size).Height));
+            AddTile(size, 0, _tiles.Count == 0
+                ? 0
+                : _tiles.Max(x => TilePanel.GetY(x) + TileSizeInfo.GetInfo(TilePanel.GetSize(x)).Height));
         }
 
-        public void AddTile(TileSize size, int x, int y)
+        private void AddTile(TileSize size, int x, int y)
         {
-            ImageTile tile = new ImageTile(size);
-            tile.ImageSource = _softwareBitmapSource;
+            ImageTile tile = new ImageTile();
+            tile.ImageSource = _imageSource;
             tile.ImageScaleTransform.ScaleX = ImageScale;
             tile.ImageScaleTransform.ScaleY = ImageScale;
 
@@ -151,46 +130,67 @@ namespace TTTTile.Controls
             tile.PointerWheelChanged += OnTilePointerWheelChanged;
 
             tile.ManipulationMode = ManipulationModes.TranslateX | ManipulationModes.TranslateY;
+            tile.ManipulationStarted += OnTileManipulationStarted;
             tile.ManipulationDelta += OnTileManipulationDelta;
             tile.ManipulationCompleted += OnTileManipulationCompleted;
 
-            _cancas.Children.Add(tile);
-            MoveTileTo(tile, x, y, tile);
+            TilePanel.SetSize(tile, size);
+            _tiles.Add(tile);
+            MoveTileTo(tile, x, y);
+            _tilePanel.Children.Add(tile);
         }
 
-        public void ClearTile()
+        private void SetTilePosition(ImageTile tile, int x, int y)
         {
-            _cancas.Children.Clear();
-            _tiles.Clear();
-            ImageX = 0;
-            ImageY = 0;
-            ImageScale = 1.0;
-            SetImage(null);
+            TilePanel.SetX(tile, x);
+            TilePanel.SetY(tile, y);
+            tile.ImageTranslateTransform.X = -x * _tileGridCellSize + ImageX;
+            tile.ImageTranslateTransform.Y = -y * _tileGridCellSize + ImageY;
         }
 
-        private void MoveTileTo(ImageTile tile, int x, int y, ImageTile ignore)
+        private ImageTile TileAt(int x, int y)
         {
-            TileSizeInfo sizeInfo = TileSizeInfo.GetInfo(tile.Size);
+            foreach (ImageTile tile in _tiles)
+            {
+                int tilePositionX = TilePanel.GetX(tile);
+                int tilePositionY = TilePanel.GetY(tile);
+                TileSizeInfo sizeInfo = TileSizeInfo.GetInfo(TilePanel.GetSize(tile));
+                if (x >= tilePositionX && x < tilePositionX + sizeInfo.Width
+                 && y >= tilePositionY && y < tilePositionY + sizeInfo.Height)
+                    return tile;
+            }
+            return null;
+        }
+
+        private void MoveTileTo(ImageTile tile, int x, int y)
+        {
+            _tiles.Remove(tile);
+
+            TileSizeInfo sizeInfo = TileSizeInfo.GetInfo(TilePanel.GetSize(tile));
             for (int i = x; i - x < sizeInfo.Width; i++)
             {
                 for (int j = y; j - y < sizeInfo.Height; j++)
                 {
                     ImageTile t = TileAt(i, j);
-                    if (t == null || t == tile || t == ignore)
-                        continue;
-                    MoveTileTo(t, GetTilePosition(t).x, y + sizeInfo.Height, ignore);
+                    if (t != null)
+                    {
+                        MoveTileTo(t, TilePanel.GetX(t), y + sizeInfo.Height);
+                    }
                 }
             }
+
+            _tiles.Add(tile);
             SetTilePosition(tile, x, y);
         }
 
         private bool RemoveTile(ImageTile tile)
         {
-            if (!_tiles.ContainsKey(tile))
-                return false;
-            _tiles.Remove(tile);
-            _cancas.Children.Remove(tile);
-            return true;
+            if (_tiles.Remove(tile))
+            {
+                _tilePanel.Children.Remove(tile);
+                return true;
+            }
+            return false;
         }
 
         private bool _moveTile = false;
@@ -222,29 +222,42 @@ namespace TTTTile.Controls
             e.Handled = true;
         }
 
+        private void OnTileManipulationStarted(object sender, ManipulationStartedRoutedEventArgs e)
+        {
+            if (sender is ImageTile tile && _moveTile)
+            {
+                Point position = tile.TransformToVisual(_draggingPreviewGrid).TransformPoint(new Point(0, 0));
+                Canvas.SetLeft(_draggingPreview, position.X);
+                Canvas.SetTop(_draggingPreview, position.Y);
+                _draggingPreview.Width = tile.ActualWidth;
+                _draggingPreview.Height = tile.ActualHeight;
+                _draggingPreview.ImageTranslateTransform.X = -TilePanel.GetX(tile) * _tileGridCellSize + ImageX;
+                _draggingPreview.ImageTranslateTransform.Y = -TilePanel.GetY(tile) * _tileGridCellSize + ImageY;
+
+                _draggingPreview.Visibility = Visibility.Visible;
+                tile.Opacity = 0.0;
+            }
+        }
+
         private void OnTileManipulationDelta(object sender, ManipulationDeltaRoutedEventArgs e)
         {
-            if (!(sender is ImageTile tile))
+            if (sender is ImageTile)
             {
-                e.Handled = true;
-                return;
+                double dx = e.Delta.Translation.X;
+                double dy = e.Delta.Translation.Y;
+                if (_moveTile)
+                {
+                    Canvas.SetLeft(_draggingPreview, Canvas.GetLeft(_draggingPreview) + dx);
+                    Canvas.SetTop (_draggingPreview, Canvas.GetTop (_draggingPreview) + dy);
+                    _draggingPreview.ImageTranslateTransform.X -= dx;
+                    _draggingPreview.ImageTranslateTransform.Y -= dy;
+                }
+                else if (_moveImage)
+                {
+                    ImageX += dx;
+                    ImageY += dy;
+                }
             }
-
-            double dx = e.Delta.Translation.X;
-            double dy = e.Delta.Translation.Y;
-            if (_moveTile)
-            {
-                Canvas.SetLeft(tile, Canvas.GetLeft(tile) + dx);
-                Canvas.SetTop(tile, Canvas.GetTop(tile) + dy);
-                tile.ImageTranslateTransform.X -= dx;
-                tile.ImageTranslateTransform.Y -= dy;
-            }
-            else if (_moveImage)
-            {
-                ImageX += dx;
-                ImageY += dy;
-            }
-
             e.Handled = true;
         }
 
@@ -252,13 +265,19 @@ namespace TTTTile.Controls
         {
             if (_moveTile && sender is ImageTile tile)
             {
-                int x = Math.Clamp((int)((Canvas.GetLeft(tile) + (_tileGridCellSize / 2)) / _tileGridCellSize), 0, _tileGridColumnCount - 1);
-                TileSizeInfo sizeInfo = TileSizeInfo.GetInfo(tile.Size);
+                Point position = _draggingPreview.TransformToVisual(_tilePanel).TransformPoint(new Point(0, 0));
+                
+                TileSizeInfo sizeInfo = TileSizeInfo.GetInfo(TilePanel.GetSize(tile));
+
+                int x = Math.Clamp((int)((position.X + (_tileGridCellSize / 2)) / _tileGridCellSize), 0, _tileGridColumnCount - 1);
                 if (x + sizeInfo.Width > _tileGridColumnCount)
                     x -= x + sizeInfo.Width - _tileGridColumnCount;
-                int y = Math.Clamp((int)((Canvas.GetTop(tile) + (_tileGridCellSize / 2)) / _tileGridCellSize), 0, int.MaxValue);
-                MoveTileTo(tile, x, y, tile);
-                _moveTile = false;
+                int y = Math.Clamp((int)((position.Y + (_tileGridCellSize / 2)) / _tileGridCellSize), 0, int.MaxValue);
+
+                MoveTileTo(tile, x, y);
+
+                tile.Opacity = 1.0;
+                _draggingPreview.Visibility = Visibility.Collapsed;
             }
             else if (_moveImage)
             {

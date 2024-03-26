@@ -40,9 +40,7 @@ namespace TTTTile
                 return;
             _currentTileImageFilename = file.Name;
             BitmapDecoder bitmapDecoder = await BitmapDecoder.CreateAsync(await file.OpenAsync(FileAccessMode.Read));
-            SoftwareBitmap softwareBitmap = await bitmapDecoder.GetSoftwareBitmapAsync();
-            _imageTileView.Id = Guid.NewGuid();
-            _imageTileView.SetImage(softwareBitmap);
+            _imageTileView.Image = await bitmapDecoder.GetSoftwareBitmapAsync();
         }
 
         private async void SetBackgroundImageAsync()

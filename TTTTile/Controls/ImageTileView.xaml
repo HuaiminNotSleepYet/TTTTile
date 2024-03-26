@@ -9,5 +9,10 @@
     d:DesignHeight="300"
     d:DesignWidth="400">
 
-    <Canvas x:Name="_cancas"/>
+    <Grid>
+        <local:TilePanel x:Name="_tilePanel" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+        <Canvas x:Name="_draggingPreviewGrid">
+            <local:ImageTile x:Name="_draggingPreview" Visibility="Collapsed"/>
+        </Canvas>
+    </Grid>
 </UserControl>
