@@ -10,8 +10,8 @@
     d:DesignWidth="400">
 
     <Grid>
-        <local:TilePanel x:Name="_tilePanel" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-        <Canvas x:Name="_draggingPreviewGrid">
+        <local:TilePanel x:Name="_tilePanel"  HorizontalAlignment="Center"  VerticalAlignment="Stretch"/>
+        <Canvas x:Name="_draggingPreviewGrid" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <local:ImageTile x:Name="_draggingPreview" Visibility="Collapsed"/>
         </Canvas>
     </Grid>

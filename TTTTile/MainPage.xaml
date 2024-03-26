@@ -11,14 +11,13 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition/>
-        </Grid.ColumnDefinitions>
-
         <Image x:Name="_backgroundImage" Stretch="UniformToFill"
-               Grid.ColumnSpan="2" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+               HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
+        <ScrollViewer Margin="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <c:ImageTileView x:Name="_imageTileView" VerticalAlignment="Top"/>
+        </ScrollViewer>
+        
         <Grid Width="208" Height="312"
               Margin="4" HorizontalAlignment="Left" VerticalAlignment="Top"
               Background="{ThemeResource SystemControlAcrylicElementMediumHighBrush}">
@@ -79,12 +78,6 @@
             </Grid>
         </Grid>
 
-        <ScrollViewer Margin="4"
-                      Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Stretch">
-            <c:ImageTileView x:Name="_imageTileView"
-                                   VerticalAlignment="Top"/>
-        </ScrollViewer>
-        
         <ContentDialog x:Name="_dialogHelp"
                        Title="Help"
                        Content="Left click to move the tile.&#x0a;Right click to move the image.&#x0a;Middle click to remove the tile.&#x0a;Scroll wheel to zoom the picture.&#x0a;"

@@ -88,13 +88,9 @@ namespace TTTTile.Controls
 
         public ImageTileView()
         {
-            double width = _tileGridColumnCount * _tileGridCellSize + TileSizeInfo.TileMargin;
-            MinWidth = width;
-            Width = width;
-            MaxWidth = width;
-
             InitializeComponent();
 
+            _tilePanel.Width = _tileGridColumnCount * _tileGridCellSize + TileSizeInfo.TileMargin;
             _draggingPreview.ImageSource = _imageSource;
         }
 
