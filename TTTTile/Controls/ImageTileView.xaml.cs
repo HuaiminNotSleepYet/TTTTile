@@ -274,6 +274,8 @@ namespace TTTTile.Controls
 
                 tile.Opacity = 1.0;
                 _draggingPreview.Visibility = Visibility.Collapsed;
+
+                _moveTile = false;
             }
             else if (_moveImage)
             {
