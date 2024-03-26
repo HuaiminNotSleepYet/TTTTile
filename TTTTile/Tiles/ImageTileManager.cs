@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Windows.Graphics.Imaging;
 using Windows.Storage;
 using Windows.Storage.Streams;
@@ -10,24 +11,18 @@ namespace TTTTile.Tiles
     {
         public static double DpiScaling { get; set; } = 1.0;
 
-        public static async void CleanAsync()
+        public static async Task CleanAsync()
         {
-            if (await ApplicationData.Current.LocalFolder.TryGetItemAsync("Tiles") is StorageFolder folder)
+            foreach (StorageFile file in await ApplicationData.Current.LocalFolder.GetFilesAsync())
             {
-                foreach (StorageFile file in await folder.GetFilesAsync())
-                {
-                    if (!SecondaryTile.Exists(file.DisplayName))
-                        await file.DeleteAsync();
-                }
+                if (!SecondaryTile.Exists(file.DisplayName))
+                    await file.DeleteAsync();
             }
         }
 
-        public static async void PinAsync(SoftwareBitmap image, double x, double y, double scale, TileSize size, string displayName = "")
+        public static async Task PinAsync(SoftwareBitmap image, double x, double y, double scale, TileSize size, string displayName = "")
         {
-            StorageFolder localFolder = ApplicationData.Current.LocalFolder;
-            StorageFolder tilesFolder = (await localFolder.TryGetItemAsync("Tiles")) as StorageFolder;
-            if (tilesFolder == null)
-                tilesFolder = await localFolder.CreateFolderAsync("Tiles", CreationCollisionOption.ReplaceExisting);
+            StorageFolder folder = ApplicationData.Current.LocalFolder;
 
             Guid guid;
             string tileId;
@@ -37,9 +32,9 @@ namespace TTTTile.Tiles
                 guid = Guid.NewGuid();
                 tileId = guid.ToString();
                 tileFilename = $"{guid}.png";
-            } while (await tilesFolder.TryGetItemAsync(tileFilename) != null);
+            } while (await folder.TryGetItemAsync(tileFilename) != null);
 
-            StorageFile tileFile = await tilesFolder.CreateFileAsync(tileFilename, CreationCollisionOption.ReplaceExisting);
+            StorageFile tileFile = await folder.CreateFileAsync(tileFilename, CreationCollisionOption.ReplaceExisting);
 
             TileSizeInfo sizeInfo = TileSizeInfo.GetInfo(size);
             
@@ -69,7 +64,7 @@ namespace TTTTile.Tiles
                                 tileId: tileId,
                                 displayName: displayName,
                                 arguments: "wdnmd",
-                                square150x150Logo: new Uri($"ms-appdata:///local/Tiles/{tileFilename}"),
+                                square150x150Logo: new Uri($"ms-appdata:///local/{tileFilename}"),
                                 desiredSize: (size == TileSize.Small ? TileSize.Medium : size).AsWindowsTileSize());
 
                             t.VisualElements.Wide310x150Logo = t.VisualElements.Square150x150Logo;

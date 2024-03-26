@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using TTTTile.Tiles;
 using Windows.Foundation;
 using Windows.Graphics.Imaging;
@@ -94,14 +95,14 @@ namespace TTTTile.Controls
             _draggingPreview.ImageSource = _imageSource;
         }
 
-        public void RequirePin(string displayName)
+        public async Task RequirePinAsync(string displayName)
         {
             if (Image == null || _tiles.Count == 0)
                 return;
 
             foreach (ImageTile tile in _tiles)
             {
-                ImageTileManager.PinAsync(Image,
+                await ImageTileManager.PinAsync(Image,
                     -tile.ImageTranslateTransform.X,
                     -tile.ImageTranslateTransform.Y,
                     ImageScale,

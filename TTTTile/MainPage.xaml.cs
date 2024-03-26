@@ -27,7 +27,7 @@ namespace TTTTile
             _buttonAddMediumTile.Click += (s, e) => _imageTileView.AddTile(TileSize.Medium);
             _buttonAddWideTile.Click   += (s, e) => _imageTileView.AddTile(TileSize.Wide);
 
-            _buttonPin.Click += (s, e) => _imageTileView.RequirePin(_currentTileImageFilename);
+            _buttonPin.Click += (s, e) => _ = _imageTileView.RequirePinAsync(_currentTileImageFilename);
 
             _buttonHelp.Click += (s, e)    => _ = _dialogHelp.ShowAsync();
             _buttonSetting.Click += (s, e) => _ = _dialogSetting.ShowAsync();

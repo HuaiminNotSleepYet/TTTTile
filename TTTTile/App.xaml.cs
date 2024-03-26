@@ -18,7 +18,8 @@ namespace TTTTile
 
         protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
-            ImageTileManager.CleanAsync();
+            _ = ImageTileManager.CleanAsync();
+
 
             if (!(Window.Current.Content is Frame rootFrame))
             {
