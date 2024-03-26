@@ -9,6 +9,7 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media.Imaging;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace TTTTile.Controls
 {
@@ -96,6 +97,9 @@ namespace TTTTile.Controls
 
         public void RequirePin(string displayName)
         {
+            if (Image == null || _tiles.Count == 0)
+                return;
+
             foreach (ImageTile tile in _tiles)
             {
                 ImageTileManager.PinAsync(Image,
