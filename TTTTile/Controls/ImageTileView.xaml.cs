@@ -32,8 +32,8 @@ namespace TTTTile.Controls
             get { return (double)GetValue(ImageScaleProperty); }
             set
             {
-                _draggingPreview.ImageScaleTransform.ScaleX = value;
-                _draggingPreview.ImageScaleTransform.ScaleY = value;
+                DraggingPreviewer.ImageScaleTransform.ScaleX = value;
+                DraggingPreviewer.ImageScaleTransform.ScaleY = value;
                 foreach (ImageTile tile in _tiles)
                 {
                     tile.ImageScaleTransform.ScaleX = value;
@@ -85,6 +85,18 @@ namespace TTTTile.Controls
             }
         }
 
+        private ImageTileDraggingPreviewer _dragingPreviewer = null;
+
+        public ImageTileDraggingPreviewer DraggingPreviewer
+        {
+            get { return _dragingPreviewer ?? _defaultPreviewer; }
+            set 
+            {
+                _defaultPreviewer.Visibility = value == null ? Visibility.Collapsed : Visibility.Visible;
+                _dragingPreviewer = value; 
+            }
+        }
+
         private readonly List<ImageTile> _tiles = new List<ImageTile>();
 
         public ImageTileView()
@@ -92,7 +104,7 @@ namespace TTTTile.Controls
             InitializeComponent();
 
             _tilePanel.Width = _tileGridColumnCount * _tileGridCellSize + TileSizeInfo.TileMargin;
-            _draggingPreview.ImageSource = _imageSource;
+            DraggingPreviewer.ImageSource = _imageSource;
         }
 
         public async Task RequirePinAsync(string displayName)
@@ -226,15 +238,14 @@ namespace TTTTile.Controls
         {
             if (sender is ImageTile tile && _moveTile)
             {
-                Point position = tile.TransformToVisual(_draggingPreviewGrid).TransformPoint(new Point(0, 0));
-                Canvas.SetLeft(_draggingPreview, position.X);
-                Canvas.SetTop(_draggingPreview, position.Y);
-                _draggingPreview.Width = tile.ActualWidth;
-                _draggingPreview.Height = tile.ActualHeight;
-                _draggingPreview.ImageTranslateTransform.X = -TilePanel.GetX(tile) * _tileGridCellSize + ImageX;
-                _draggingPreview.ImageTranslateTransform.Y = -TilePanel.GetY(tile) * _tileGridCellSize + ImageY;
+                Point position = tile.TransformToVisual(DraggingPreviewer).TransformPoint(new Point(0, 0));
+                DraggingPreviewer.PreviewerSize = TilePanel.GetSize(tile);
+                DraggingPreviewer.PreviewerX = position.X;
+                DraggingPreviewer.PreviewerY = position.Y;
+                DraggingPreviewer.ImageTranslateTransform.X = -TilePanel.GetX(tile) * _tileGridCellSize + ImageX;
+                DraggingPreviewer.ImageTranslateTransform.Y = -TilePanel.GetY(tile) * _tileGridCellSize + ImageY;
 
-                _draggingPreview.Visibility = Visibility.Visible;
+                DraggingPreviewer.ShowPreviewer = true;
                 tile.Opacity = 0.0;
             }
         }
@@ -247,10 +258,10 @@ namespace TTTTile.Controls
                 double dy = e.Delta.Translation.Y;
                 if (_moveTile)
                 {
-                    Canvas.SetLeft(_draggingPreview, Canvas.GetLeft(_draggingPreview) + dx);
-                    Canvas.SetTop (_draggingPreview, Canvas.GetTop (_draggingPreview) + dy);
-                    _draggingPreview.ImageTranslateTransform.X -= dx;
-                    _draggingPreview.ImageTranslateTransform.Y -= dy;
+                    DraggingPreviewer.PreviewerX += dx;
+                    DraggingPreviewer.PreviewerY += dy;
+                    DraggingPreviewer.ImageTranslateTransform.X -= dx;
+                    DraggingPreviewer.ImageTranslateTransform.Y -= dy;
                 }
                 else if (_moveImage)
                 {
@@ -265,7 +276,7 @@ namespace TTTTile.Controls
         {
             if (_moveTile && sender is ImageTile tile)
             {
-                Point position = _draggingPreview.TransformToVisual(_tilePanel).TransformPoint(new Point(0, 0));
+                Point position = DraggingPreviewer.TransformToVisual(_tilePanel).TransformPoint(new Point(DraggingPreviewer.PreviewerX, DraggingPreviewer.PreviewerY));
                 
                 TileSizeInfo sizeInfo = TileSizeInfo.GetInfo(TilePanel.GetSize(tile));
 
@@ -277,7 +288,7 @@ namespace TTTTile.Controls
                 MoveTileTo(tile, x, y);
 
                 tile.Opacity = 1.0;
-                _draggingPreview.Visibility = Visibility.Collapsed;
+                DraggingPreviewer.ShowPreviewer = false;
 
                 _moveTile = false;
             }

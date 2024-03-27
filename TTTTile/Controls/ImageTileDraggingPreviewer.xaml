@@ -1,5 +1,5 @@
 ﻿<UserControl
-    x:Class="TTTTile.Controls.ImageTileView"
+    x:Class="TTTTile.Controls.ImageTileDraggingPreviewer"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:TTTTile.Controls"
@@ -9,8 +9,7 @@
     d:DesignHeight="300"
     d:DesignWidth="400">
 
-    <Grid>
-        <local:TilePanel x:Name="_tilePanel"  HorizontalAlignment="Center"  VerticalAlignment="Stretch"/>
-        <local:ImageTileDraggingPreviewer x:Name="_defaultPreviewer"/>
-    </Grid>
+    <Canvas>
+        <local:ImageTile x:Name="_imageTile" Visibility="Collapsed"/>
+    </Canvas>
 </UserControl>
