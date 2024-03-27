@@ -11,15 +11,18 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition/>
-        </Grid.ColumnDefinitions>
-
         <Image x:Name="_backgroundImage" Stretch="UniformToFill"
-               Grid.ColumnSpan="2" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+               HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-        <c:TilePanel Margin="4" HorizontalAlignment="Left" VerticalAlignment="Top"
+        <ScrollViewer x:Name="_scrollViewer"
+                      Margin="4" HorizontalAlignment="Center" VerticalAlignment="Stretch">
+            <c:ImageTileView x:Name="_imageTileView"
+                             DraggingPreviewer="{x:Bind _draggingPreviewer,Mode=OneTime}"
+                             VerticalAlignment="Top"/>
+        </ScrollViewer>
+
+        <c:TilePanel x:Name="_buttonTilePanel"
+                     Margin="4" HorizontalAlignment="Left" VerticalAlignment="Top"
                      Background="{ThemeResource SystemControlAcrylicElementMediumHighBrush}">
             <Button x:Name="_buttonSetBackground"
                     c:TilePanel.Size="Medium" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
@@ -68,11 +71,6 @@
                 <SymbolIcon Symbol="Setting"/>
             </Button>
         </c:TilePanel>
-
-        <ScrollViewer Grid.Column="1" Margin="4" HorizontalAlignment="Center" VerticalAlignment="Stretch">
-            <c:ImageTileView x:Name="_imageTileView" DraggingPreviewer="{x:Bind _draggingPreviewer,Mode=OneTime}"
-                             VerticalAlignment="Top"/>
-        </ScrollViewer>
         
         <c:ImageTileDraggingPreviewer x:Name="_draggingPreviewer"
                                       Grid.ColumnSpan="2"/>

@@ -4,6 +4,7 @@ using TTTTile.Tiles;
 using Windows.Graphics.Imaging;
 using Windows.Storage;
 using Windows.Storage.Pickers;
+using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media.Imaging;
 
@@ -16,6 +17,21 @@ namespace TTTTile
         public MainPage()
         {
             InitializeComponent();
+
+            SizeChanged += (s, e) =>
+            {
+                Thickness oldMargin = _scrollViewer.Margin;
+                double leftMargin = _buttonTilePanel.ActualWidth + 8;
+                double dd = _scrollViewer.ActualWidth;
+                if (e.NewSize.Width < (212 + 420 + 8))
+                {
+                    if (e.NewSize.Width < (420 + 8))
+                        leftMargin = 4;
+                    else
+                        leftMargin = e.NewSize.Width - 420;
+                }
+                _scrollViewer.Margin = new Thickness(leftMargin, oldMargin.Top, oldMargin.Right, oldMargin.Bottom);
+            };
 
             _sliderDpiScaling.Value = ImageTileManager.DpiScaling * 100;
             _sliderDpiScaling.ValueChanged += (s, e) => ImageTileManager.DpiScaling = e.NewValue / 100;
