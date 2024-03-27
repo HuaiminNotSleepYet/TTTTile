@@ -221,24 +221,34 @@ namespace TTTTile.Controls
             return false;
         }
 
-        private void ResizeImageToFill()
+        private (int x, int y, int width, int height) GetTilePixelBounds()
         {
             if (Image == null || _tiles.Count == 0)
-                return;
+                return (0, 0, 0, 0);
 
             int left   = _tiles.Min(x => TilePanel.GetX(x));
             int top    = _tiles.Min(x => TilePanel.GetY(x));
             int right  = _tiles.Max(x => TilePanel.GetX(x) + TileSizeInfo.GetInfo(TilePanel.GetSize(x)).Width);
             int bottom = _tiles.Max(x => TilePanel.GetY(x) + TileSizeInfo.GetInfo(TilePanel.GetSize(x)).Height);
-            int width = right - left;
+            int width  = right - left;
             int height = bottom - top;
 
-            int pixelWidth  = width  * _tileGridCellSize - TileSizeInfo.TileMargin;
-            int pixelHeight = height * _tileGridCellSize - TileSizeInfo.TileMargin;
+            return (left   * _tileGridCellSize,
+                    top    * _tileGridCellSize,
+                    width  * _tileGridCellSize - TileSizeInfo.TileMargin,
+                    height * _tileGridCellSize - TileSizeInfo.TileMargin);
+        }
 
-            double imgScale = Math.Max((double)pixelWidth / Image.PixelWidth, (double)pixelHeight / Image.PixelHeight);
-            double imgX = -(Image.PixelWidth  * imgScale - pixelWidth ) / 2;
-            double imgY = -(Image.PixelHeight * imgScale - pixelHeight) / 2;
+        private void ResizeImageToFill()
+        {
+            if (Image == null || _tiles.Count == 0)
+                return;
+
+            var (_, _, width, height) = GetTilePixelBounds();
+
+            double imgScale = Math.Max((double)width / Image.PixelWidth, (double)height / Image.PixelHeight);
+            double imgX = -(Image.PixelWidth  * imgScale - width ) / 2;
+            double imgY = -(Image.PixelHeight * imgScale - height) / 2;
 
             ImageScale = imgScale;
             ImageX = imgX;
@@ -251,9 +261,9 @@ namespace TTTTile.Controls
         private void OnTilePointerPressed(object sender, PointerRoutedEventArgs e)
         {
             PointerPoint pointerPoint = e.GetCurrentPoint(null);
-            if (pointerPoint.Properties.IsLeftButtonPressed)
+            if (_tiles.Count > 0 && pointerPoint.Properties.IsLeftButtonPressed)
                 _moveTile = true;
-            else if (pointerPoint.Properties.IsRightButtonPressed)
+            else if (Image != null && pointerPoint.Properties.IsRightButtonPressed)
                 _moveImage = true;
             else if (pointerPoint.Properties.IsMiddleButtonPressed && sender is ImageTile tile)
                 RemoveTile(tile);
@@ -269,8 +279,14 @@ namespace TTTTile.Controls
 
         private void OnTilePointerWheelChanged(object sender, PointerRoutedEventArgs e)
         {
-            if (sender is ImageTile)
-                ImageScale *= 1 + (0.0005 * e.GetCurrentPoint(null).Properties.MouseWheelDelta);
+            if (Image != null && sender is ImageTile)
+            {
+                double newScale = ImageScale * (1 + (0.0005 * e.GetCurrentPoint(null).Properties.MouseWheelDelta));
+                var (x, y, width, height) = GetTilePixelBounds();
+                if (ImageX + Image.PixelWidth  * newScale >= x + width
+                 && ImageY + Image.PixelHeight * newScale >= y + height)
+                    ImageScale = newScale;
+            }
             e.Handled = true;
         }
 
@@ -305,8 +321,13 @@ namespace TTTTile.Controls
                 }
                 else if (_moveImage)
                 {
-                    ImageX += dx;
-                    ImageY += dy;
+                    var (x, y, width, height) = GetTilePixelBounds();
+                    double newX = ImageX + dx;
+                    double newY = ImageY + dy;
+                    if (newX <= x && newX + Image.PixelWidth  * ImageScale >= width)
+                        ImageX = newX;
+                    if (newY <= y && newY + Image.PixelHeight * ImageScale >= height)
+                        ImageY = newY;
                 }
             }
             e.Handled = true;
@@ -316,7 +337,8 @@ namespace TTTTile.Controls
         {
             if (_moveTile && sender is ImageTile tile)
             {
-                Point position = DraggingPreviewer.TransformToVisual(_tilePanel).TransformPoint(new Point(DraggingPreviewer.PreviewerX, DraggingPreviewer.PreviewerY));
+                Point position = DraggingPreviewer.TransformToVisual(_tilePanel)
+                                                  .TransformPoint(new Point(DraggingPreviewer.PreviewerX, DraggingPreviewer.PreviewerY));
                 
                 TileSizeInfo sizeInfo = TileSizeInfo.GetInfo(TilePanel.GetSize(tile));
 
@@ -331,6 +353,8 @@ namespace TTTTile.Controls
                 DraggingPreviewer.ShowPreviewer = false;
 
                 _moveTile = false;
+
+                ResizeImageToFill();
             }
             else if (_moveImage)
             {
