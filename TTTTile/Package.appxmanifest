@@ -9,7 +9,7 @@
   <Identity
     Name="46e79dbd-6853-4213-a215-84f6e22fb6b0"
     Publisher="CN=Zhang"
-    Version="1.0.0.0" />
+    Version="1.1.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="46e79dbd-6853-4213-a215-84f6e22fb6b0" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 

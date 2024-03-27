@@ -152,6 +152,12 @@ namespace TTTTile.Controls
             _tilePanel.Children.Add(tile);
         }
 
+        public void ClearTiles()
+        {
+            _tiles.Clear();
+            _tilePanel.Children.Clear();
+        }
+
         private void SetTilePosition(ImageTile tile, int x, int y)
         {
             TilePanel.SetX(tile, x);
