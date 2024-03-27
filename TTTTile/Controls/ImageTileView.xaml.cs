@@ -92,7 +92,15 @@ namespace TTTTile.Controls
             get { return _dragingPreviewer ?? _defaultPreviewer; }
             set 
             {
-                _defaultPreviewer.Visibility = value == null ? Visibility.Collapsed : Visibility.Visible;
+                if (value == null)
+                {
+                    _defaultPreviewer.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    value.ImageSource = _imageSource;
+                    _defaultPreviewer.Visibility = Visibility.Collapsed;
+                }
                 _dragingPreviewer = value; 
             }
         }
