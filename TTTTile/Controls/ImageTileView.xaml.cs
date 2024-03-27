@@ -159,6 +159,7 @@ namespace TTTTile.Controls
             TilePanel.SetSize(tile, size);
             _tiles.Add(tile);
             MoveTileTo(tile, x, y);
+            ResizeImageToFill();
             _tilePanel.Children.Add(tile);
         }
 
@@ -239,6 +240,9 @@ namespace TTTTile.Controls
                     height * _tileGridCellSize - TileSizeInfo.TileMargin);
         }
 
+        /// <summary>
+        /// Scale and reposition the image to center the fill tile.
+        /// </summary>
         private void AdjustImageToFill()
         {
             if (Image == null || _tiles.Count == 0)
@@ -253,6 +257,23 @@ namespace TTTTile.Controls
             ImageScale = imgScale;
             ImageX = imgX;
             ImageY = imgY;
+        }
+
+        /// <summary>
+        /// Scale the image to fit the size when the image is smaller than the tile bounds, without changing the image position.
+        /// </summary>
+        private void ResizeImageToFill()
+        {
+            if (Image == null)
+                return;
+
+            var (x, y, width, height) = GetTilePixelBounds();
+            if (ImageX + Image.PixelWidth * ImageScale <= x + width
+             || ImageY + Image.PixelHeight * ImageScale <= y + height)
+            {
+                ImageScale = Math.Max((x - ImageX + width)  / Image.PixelWidth,
+                                      (y - ImageY + height) / Image.PixelHeight);
+            }
         }
 
         private bool _moveTile = false;
@@ -339,30 +360,19 @@ namespace TTTTile.Controls
         {
             if (_moveTile && sender is ImageTile tile)
             {
-                {
-                    Point position = DraggingPreviewer.TransformToVisual(_tilePanel)
-                                                      .TransformPoint(new Point(DraggingPreviewer.PreviewerX, DraggingPreviewer.PreviewerY));
+                Point position = DraggingPreviewer.TransformToVisual(_tilePanel)
+                                                  .TransformPoint(new Point(DraggingPreviewer.PreviewerX, DraggingPreviewer.PreviewerY));
 
-                    TileSizeInfo sizeInfo = TileSizeInfo.GetInfo(TilePanel.GetSize(tile));
+                TileSizeInfo sizeInfo = TileSizeInfo.GetInfo(TilePanel.GetSize(tile));
 
-                    int x = Math.Clamp((int)((position.X + (_tileGridCellSize / 2)) / _tileGridCellSize), 0, _tileGridColumnCount - 1);
-                    if (x + sizeInfo.Width > _tileGridColumnCount)
-                        x -= x + sizeInfo.Width - _tileGridColumnCount;
-                    int y = Math.Clamp((int)((position.Y + (_tileGridCellSize / 2)) / _tileGridCellSize), 0, int.MaxValue);
+                int x = Math.Clamp((int)((position.X + (_tileGridCellSize / 2)) / _tileGridCellSize), 0, _tileGridColumnCount - 1);
+                if (x + sizeInfo.Width > _tileGridColumnCount)
+                    x -= x + sizeInfo.Width - _tileGridColumnCount;
+                int y = Math.Clamp((int)((position.Y + (_tileGridCellSize / 2)) / _tileGridCellSize), 0, int.MaxValue);
 
-                    MoveTileTo(tile, x, y);
-                }
+                MoveTileTo(tile, x, y);
 
-                if (Image != null)
-                {
-                    var (x, y, width, height) = GetTilePixelBounds();
-                    if (ImageX + Image.PixelWidth  * ImageScale <= x + width
-                     || ImageY + Image.PixelHeight * ImageScale <= y + height)
-                    {
-                        ImageScale = Math.Max((x - ImageX + width)  / Image.PixelWidth,
-                                              (y - ImageY + height) / Image.PixelHeight);
-                    }
-                }
+                ResizeImageToFill();
 
                 tile.Opacity = 1.0;
                 DraggingPreviewer.ShowPreviewer = false;
