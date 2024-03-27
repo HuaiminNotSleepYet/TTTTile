@@ -32,6 +32,14 @@ namespace TTTTile
 
             _buttonHelp.Click += (s, e)    => _ = _dialogHelp.ShowAsync();
             _buttonSetting.Click += (s, e) => _ = _dialogSetting.ShowAsync();
+
+            _imageTileView.AddTile(TileSize.Wide, 0, 0);
+            _imageTileView.AddTile(TileSize.Wide, 4, 0);
+            _imageTileView.AddTile(TileSize.Wide, 0, 2);
+            _imageTileView.AddTile(TileSize.Wide, 4, 2);
+            _imageTileView.AddTile(TileSize.Wide, 0, 4);
+            _imageTileView.AddTile(TileSize.Medium, 4, 4);
+            _imageTileView.AddTile(TileSize.Medium, 6, 4);
         }
 
         private async void SetTileImageAsync()

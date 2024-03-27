@@ -138,7 +138,7 @@ namespace TTTTile.Controls
                 : _tiles.Max(x => TilePanel.GetY(x) + TileSizeInfo.GetInfo(TilePanel.GetSize(x)).Height));
         }
 
-        private void AddTile(TileSize size, int x, int y)
+        public void AddTile(TileSize size, int x, int y)
         {
             ImageTile tile = new ImageTile();
             tile.ImageSource = _imageSource;
